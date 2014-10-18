@@ -1,25 +1,30 @@
 import sys
 import getopt
 import cv2
+import math
 import numpy as np
 from matplotlib import pyplot as plt
 
 class HistogramEqualization:
 	def __init__(self, img):
 		"""Create threshold image"""
-		self.original_image = Image(img, None, None, None)
 		self.equalized_image = Image(img, None, None, None)
 		self.rows,self.cols = self.equalized_image.shape()
-		self.histogram = Histogram(self.equalized_image.matrix)
+		self.max_val = 256
+		self.histogram = Histogram(self.equalized_image.matrix, self.max_val)
 							
 	def equalize(self):
-		print 'Use histogram to equalize image'
+		for i in xrange(self.rows):
+			for j in xrange(self.cols):
+				current = self.equalized_image.get_pixel(i,j)
+				current.color = self.histogram.new_val(current.color)
+				self.equalized_image.color_pixel(current)
 
 	def plot(self):
 		self.equalized_image.plot()
 
 	def save(self, output_file):
-		self.equalized_image.save(output_file)	
+		self.equalized_image.save(output_file)
 
 	def save_text(self):
 		"""Save matrix in csv file for debugging"""
@@ -55,9 +60,9 @@ class Image:
 				pixels.append(px)
 		return pixels		
 
-	def label_pixel(self, pixel):
-		"""Label a specific pixel"""
-		self.matrix.itemset((pixel.row,pixel.col), pixel.label)
+	def color_pixel(self, pixel):
+		"""color a specific pixel"""
+		self.matrix.itemset((pixel.row,pixel.col), pixel.color)
 
 	def plot(self):
 		plt.imshow(self.matrix, cmap = 'gray', interpolation = 'nearest')
@@ -71,35 +76,39 @@ class Image:
 	
 
 class Pixel:
-	def __init__(self, label, row, col):
-		"""Create a pixel with label and coordinates"""
-		self.label = label
+	def __init__(self, color, row, col):
+		"""Create a pixel with color and coordinates"""
+		self.color = color
 		self.row = row
 		self.col = col
 
-	def is_label(self, label):
-		"""Test if pixel has a label"""
-		if self.label == label:
+	def is_color(self, color):
+		"""Test if pixel has a color"""
+		if self.color == color:
 			return True
 		else:
 			return False
 
-	def is_not_label(self, label):
-		"""Test if pixel doesn't have a label"""
-		if self.label != label:
+	def is_not_color(self, color):
+		"""Test if pixel doesn't have a color"""
+		if self.color != color:
 			return True
 		else:
 			return False
 
 
 class Histogram:
-	def __init__(self, img):
-		self.hist = cv2.calcHist([img],[0],None,[256],[0,256])
+	def __init__(self, img, max_val):
+		self.max_val = max_val
+		self.hist = cv2.calcHist([img],[0],None,[self.max_val],[0,self.max_val])
 		self.cumsum = self.hist.cumsum()
 		self.cumsum_max = self.cumsum.max()
 
 	def cdf(self, i):
-		return self.cumsum[i]/self.cumsum_max				
+		return self.cumsum[i]/self.cumsum_max
+
+	def new_val(self, i):
+		return math.floor((self.max_val - 1)*self.cdf(i))
 
 						
 def main():
