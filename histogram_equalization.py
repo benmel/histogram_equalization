@@ -10,12 +10,10 @@ class HistogramEqualization:
 		self.original_image = Image(img, None, None, None)
 		self.equalized_image = Image(img, None, None, None)
 		self.rows,self.cols = self.equalized_image.shape()
+		self.histogram = Histogram(self.equalized_image.matrix)
 							
 	def equalize(self):
 		print 'Use histogram to equalize image'
-
-	def histogram(self):
-		return cv2.calcHist([self.original_image.matrix],[0],None,[256],[0,256])	
 
 	def plot(self):
 		self.equalized_image.plot()
@@ -92,6 +90,16 @@ class Pixel:
 			return True
 		else:
 			return False
+
+
+class Histogram:
+	def __init__(self, img):
+		self.hist = cv2.calcHist([img],[0],None,[256],[0,256])
+		self.cumsum = self.hist.cumsum()
+		self.cumsum_max = self.cumsum.max()
+
+	def cdf(self, i):
+		return self.cumsum[i]/self.cumsum_max				
 
 						
 def main():
