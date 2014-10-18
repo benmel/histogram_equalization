@@ -7,10 +7,8 @@ from matplotlib import pyplot as plt
 class HistogramEqualization:
 	def __init__(self, img):
 		"""Create threshold image"""
-		self.background = 0
-		self.foreground = 1
-		self.original_image = Image(img, None, None, self.background)
-		self.equalized_image = Image(img, None, None, self.background)
+		self.original_image = Image(img, None, None, None)
+		self.equalized_image = Image(img, None, None, None)
 		self.rows,self.cols = self.equalized_image.shape()
 							
 	def equalize(self):
