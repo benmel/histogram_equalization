@@ -7,12 +7,16 @@ from matplotlib import pyplot as plt
 class HistogramEqualization:
 	def __init__(self, img):
 		"""Create threshold image"""
-		self.background = 0
-		self.foreground = 1
-		self.original_image = Image(img, None, None, self.background)
-		self.equalized_image = Image(img, None, None, self.background)
+		self.original_image = Image(img, None, None, None)
+		self.equalized_image = Image(img, None, None, None)
 		self.rows,self.cols = self.equalized_image.shape()
-								
+							
+	def equalize(self):
+		print 'Use histogram to equalize image'
+
+	def histogram(self):
+		return cv2.calcHist([self.original_image.matrix],[0],None,[256],[0,256])	
+
 	def plot(self):
 		self.equalized_image.plot()
 
@@ -119,6 +123,7 @@ def main():
 			 
 	img = cv2.imread(inputf, 0)
 	he = HistogramEqualization(img)
+	he.equalize()
 
 	"""Save or plot image"""	
 	if outputf:
