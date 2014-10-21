@@ -7,34 +7,37 @@ from matplotlib import pyplot as plt
 
 class HistogramEqualization:
 	def __init__(self, img):
-		"""Create threshold image"""
+		"""Create image and histogram"""
 		self.equalized_image = Image(img, None, None, None)
 		self.rows,self.cols = self.equalized_image.shape()
 		self.max_val = 256
 		self.histogram = Histogram(self.equalized_image.matrix, self.max_val)
 							
 	def equalize(self):
+		"""Equalize image"""
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
+				"""Get current pixel and set color to equalized color"""
 				current = self.equalized_image.get_pixel(i,j)
 				current.color = self.histogram.new_val(current.color)
 				self.equalized_image.color_pixel(current)
 
 	def plot(self):
+		"""Plot equalized_image"""
 		self.equalized_image.plot()
 
 	def save(self, output_file):
+		"""Save equalized image"""
 		self.equalized_image.save(output_file)
 
 	def save_text(self):
 		"""Save matrix in csv file for debugging"""
-		np.savetxt('in.csv', self.original_image.matrix, delimiter=',', fmt='%d')
 		np.savetxt('out.csv', self.equalized_image.matrix, delimiter=',', fmt='%d')	
 	
 
 class Image:
 	def __init__(self, matrix, rows, cols, background):
-		"""Store matrix"""
+		"""Save or create matrix"""
 		if matrix is None: 
 			self.matrix = np.zeros((rows,cols), dtype=np.int)
 		else:	
@@ -42,34 +45,25 @@ class Image:
 		self.background = background
 
 	def shape(self):
+		"""Return number of rows and columns"""
 		return self.matrix.shape	
 
 	def get_pixel(self, row, col):
 		"""Return a specific pixel"""
 		return Pixel(self.matrix.item(row,col), row, col)
 
-	def get_pixels(self, coords):
-		"""Return all pixels specified by coordinates array"""
-		pixels = []
-		row_max, col_max = self.shape()
-		for c in coords:
-			row_temp = c[0]
-			col_temp = c[1]
-			if row_temp >= 0 and col_temp >= 0 and row_temp < row_max and col_temp < col_max:
-				px = self.get_pixel(row_temp,col_temp)
-				pixels.append(px)
-		return pixels		
-
 	def color_pixel(self, pixel):
-		"""color a specific pixel"""
+		"""Color a specific pixel"""
 		self.matrix.itemset((pixel.row,pixel.col), pixel.color)
 
 	def plot(self):
+		"""Plot matrix"""
 		plt.imshow(self.matrix, cmap = 'gray', interpolation = 'nearest')
 		plt.xticks([]), plt.yticks([])
 		plt.show()
 
 	def save(self, output_file):
+		"""Save matrix"""
 		plt.imshow(self.matrix, cmap = 'gray', interpolation = 'nearest')
 		plt.xticks([]), plt.yticks([])
 		plt.savefig(output_file, bbox_inches='tight')		
@@ -99,21 +93,25 @@ class Pixel:
 
 class Histogram:
 	def __init__(self, img, max_val):
+		"""Create histogram"""
 		self.max_val = max_val
 		self.hist = cv2.calcHist([img],[0],None,[self.max_val],[0,self.max_val])
+		"""Save cummulative sum and it's maximum"""
 		self.cumsum = self.hist.cumsum()
 		self.cumsum_max = self.cumsum.max()
 
 	def cdf(self, i):
+		"""Return value of cummulative distribution function at i"""
 		return self.cumsum[i]/self.cumsum_max
 
 	def new_val(self, i):
+		"""Use cdf to calculate new gray level"""
 		return math.floor((self.max_val - 1)*self.cdf(i))
 
 						
 def main():
 	def usage():
-		print 'python histogram_equalization.py -i <inputf> [-o <outputf>]'
+		print "python histogram_equalization.py -i <inputf> [-o <outputf>]"
 
 	inputf = None
 	outputf = None
