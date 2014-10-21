@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 class HistogramEqualization:
 	def __init__(self, img):
 		"""Create image and histogram"""
-		self.equalized_image = Image(img, None, None, None)
+		self.equalized_image = Image(matrix=img)
 		self.rows,self.cols = self.equalized_image.shape()
 		self.max_val = 256
 		self.histogram = Histogram(self.equalized_image.matrix, self.max_val)
@@ -32,17 +32,19 @@ class HistogramEqualization:
 
 	def save_text(self):
 		"""Save matrix in csv file for debugging"""
-		np.savetxt('out.csv', self.equalized_image.matrix, delimiter=',', fmt='%d')	
+		np.savetxt("out.csv", self.equalized_image.matrix, delimiter=",", fmt="%d")	
 	
 
 class Image:
-	def __init__(self, matrix, rows, cols, background):
+	def __init__(self, **kwargs):
 		"""Save or create matrix"""
-		if matrix is None: 
-			self.matrix = np.zeros((rows,cols), dtype=np.int)
-		else:	
-			self.matrix = matrix
-		self.background = background
+		if kwargs.has_key("matrix"):
+			self.matrix = kwargs["matrix"]
+		elif kwargs.has_key("rows")	and kwargs.has_key("cols"):
+			self.matrix = np.zeros((kwargs["rows"], kwargs["cols"]), dtype=np.int)
+
+		if kwargs.has_key("background"):
+			self.background = kwargs["background"]	
 
 	def shape(self):
 		"""Return number of rows and columns"""
@@ -58,15 +60,15 @@ class Image:
 
 	def plot(self):
 		"""Plot matrix"""
-		plt.imshow(self.matrix, cmap = 'gray', interpolation = 'nearest')
+		plt.imshow(self.matrix, cmap = "gray", interpolation = "nearest")
 		plt.xticks([]), plt.yticks([])
 		plt.show()
 
 	def save(self, output_file):
 		"""Save matrix"""
-		plt.imshow(self.matrix, cmap = 'gray', interpolation = 'nearest')
+		plt.imshow(self.matrix, cmap = "gray", interpolation = "nearest")
 		plt.xticks([]), plt.yticks([])
-		plt.savefig(output_file, bbox_inches='tight')		
+		plt.savefig(output_file, bbox_inches="tight")		
 	
 
 class Pixel:
@@ -123,7 +125,7 @@ def main():
 		usage()
 		sys.exit(2)
 	for opt, arg in opts:
-		if opt in ('-h', '--help'):
+		if opt in ("-h", "--help"):
 			usage()
 			sys.exit()	
 		elif opt in ("-i", "--inputf"):
