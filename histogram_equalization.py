@@ -4,6 +4,7 @@ import cv2
 import math
 import numpy as np
 from matplotlib import pyplot as plt
+from copy import deepcopy
 
 class HistogramEqualization:
 	def __init__(self, img):
@@ -12,6 +13,8 @@ class HistogramEqualization:
 		self.rows,self.cols = self.equalized_image.shape()
 		self.max_val = 256
 		self.histogram = Histogram(self.equalized_image.matrix, self.max_val)
+		img_orig = deepcopy(img)
+		self.original_image = Image(matrix=img_orig)
 							
 	def equalize(self):
 		"""Equalize image"""
@@ -31,7 +34,28 @@ class HistogramEqualization:
 		self.equalized_image.save(output_file)
 
 	def transfer_function(self, output_file):
+		"""Save transfer function"""
 		self.histogram.transfer_function(output_file)
+
+	def histogram_in(self, output_file):
+		"""Save input histogram"""
+		plt.hist(self.original_image.matrix.ravel(),self.max_val,[0,self.max_val])
+		plt.xlim(xmax=self.max_val-1)
+		plt.xlabel("Bins")
+		plt.ylabel("Histogram")
+		plt.title("Input Image Histogram")
+		plt.savefig(output_file, bbox_inches="tight")
+		plt.clf()	
+
+	def histogram_out(self, output_file):
+		"""Save output histogram"""
+		plt.hist(self.equalized_image.matrix.ravel(),self.max_val,[0,self.max_val])
+		plt.xlim(xmax=self.max_val-1)
+		plt.xlabel("Bins")
+		plt.ylabel("Histogram")
+		plt.title("Equalized Image Histogram")
+		plt.savefig(output_file, bbox_inches="tight")
+		plt.clf()
 
 	def save_text(self):
 		"""Save matrix in csv file for debugging"""
@@ -128,16 +152,19 @@ class Histogram:
 						
 def main():
 	def usage():
-		print "python histogram_equalization.py -i <inputf> [-o <outputf> -t <transferf>]"
+		print "python histogram_equalization.py -i <inputf> [-o <outputf> -t <transferf> "\
+					"-a <histinf> -b <histoutf>]"
 
 	inputf = None
 	outputf = None
 	transferf = None
+	histinf = None
+	histoutf = None
 
 	"""Process command line inputs"""
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "hi:o:t:", ["inputf=", "outputf=", 
-								 "transferf="])
+		opts, args = getopt.getopt(sys.argv[1:], "hi:o:t:a:b:", ["inputf=", "outputf=", 
+								 "transferf=", "histinf=", "histoutf="])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
@@ -150,7 +177,11 @@ def main():
 		elif opt in ("-o", "--outputf"):
 			outputf = arg
 		elif opt in ("-t", "--transferf"):
-			transferf = arg			
+			transferf = arg	
+		elif opt in ("-a", "--histinf"):
+			histinf = arg
+		elif opt in ("-b", "--histoutf"):
+			histoutf = arg				
 
 	"""Required arguments"""
 	if not inputf:
@@ -164,6 +195,12 @@ def main():
 	"""Save transfer function plot"""
 	if transferf:
 		he.transfer_function(transferf)
+
+	if histinf:
+		he.histogram_in(histinf)
+
+	if histoutf:
+		he.histogram_out(histoutf)		
 
 	"""Save or plot image"""	
 	if outputf:
