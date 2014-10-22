@@ -90,12 +90,14 @@ class Image:
 		plt.imshow(self.matrix, cmap = "gray", interpolation = "nearest")
 		plt.xticks([]), plt.yticks([])
 		plt.show()
+		plt.clf()
 
 	def save(self, output_file):
 		"""Save matrix"""
 		plt.imshow(self.matrix, cmap = "gray", interpolation = "nearest")
 		plt.xticks([]), plt.yticks([])
-		plt.savefig(output_file, bbox_inches="tight")		
+		plt.savefig(output_file, bbox_inches="tight")	
+		plt.clf()	
 	
 
 class Pixel:
@@ -125,7 +127,7 @@ class Histogram:
 		"""Create histogram"""
 		self.max_val = max_val
 		self.hist = cv2.calcHist([img],[0],None,[self.max_val],[0,self.max_val])
-		"""Save cummulative sum and it's maximum"""
+		"""Save cummulative sum and its maximum"""
 		self.cumsum = self.hist.cumsum()
 		self.cumsum_max = self.cumsum.max()
 
@@ -187,7 +189,8 @@ def main():
 	if not inputf:
 		usage()
 		sys.exit()
-			 
+	
+	"""Create image and run histogram equalization"""		 
 	img = cv2.imread(inputf, 0)
 	he = HistogramEqualization(img)
 	he.equalize()
@@ -196,9 +199,11 @@ def main():
 	if transferf:
 		he.transfer_function(transferf)
 
+	"""Save input histogram"""
 	if histinf:
 		he.histogram_in(histinf)
 
+	"""Save output histogram"""
 	if histoutf:
 		he.histogram_out(histoutf)		
 
