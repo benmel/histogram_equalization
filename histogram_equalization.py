@@ -30,6 +30,9 @@ class HistogramEqualization:
 		"""Save equalized image"""
 		self.equalized_image.save(output_file)
 
+	def transfer_function(self, output_file):
+		self.histogram.transfer_function(output_file)
+
 	def save_text(self):
 		"""Save matrix in csv file for debugging"""
 		np.savetxt("out.csv", self.equalized_image.matrix, delimiter=",", fmt="%d")	
@@ -110,17 +113,31 @@ class Histogram:
 		"""Use cdf to calculate new gray level"""
 		return math.floor((self.max_val - 1)*self.cdf(i))
 
+	def transfer_function(self, output_file):
+		"""Create CDF array then plot"""
+		transfer = self.cumsum / self.cumsum_max
+		plt.plot(transfer)
+		plt.xlim(xmax=self.max_val-1)
+		plt.ylim(ymax=1.2)
+		plt.xlabel("Gray Value")
+		plt.ylabel("CDF")
+		plt.title("Transfer Function")
+		plt.savefig(output_file, bbox_inches="tight")
+		plt.clf()	
+
 						
 def main():
 	def usage():
-		print "python histogram_equalization.py -i <inputf> [-o <outputf>]"
+		print "python histogram_equalization.py -i <inputf> [-o <outputf> -t <transferf>]"
 
 	inputf = None
 	outputf = None
+	transferf = None
 
 	"""Process command line inputs"""
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "hi:o:", ["inputf=", "outputf="])
+		opts, args = getopt.getopt(sys.argv[1:], "hi:o:t:", ["inputf=", "outputf=", 
+								 "transferf="])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
@@ -132,6 +149,8 @@ def main():
 			inputf = arg
 		elif opt in ("-o", "--outputf"):
 			outputf = arg
+		elif opt in ("-t", "--transferf"):
+			transferf = arg			
 
 	"""Required arguments"""
 	if not inputf:
@@ -141,6 +160,10 @@ def main():
 	img = cv2.imread(inputf, 0)
 	he = HistogramEqualization(img)
 	he.equalize()
+
+	"""Save transfer function plot"""
+	if transferf:
+		he.transfer_function(transferf)
 
 	"""Save or plot image"""	
 	if outputf:
